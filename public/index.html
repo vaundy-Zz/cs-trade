@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="/styles.css" />
+  <title>Alerts Workflow</title>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>Alerts Workflow System</h1>
+      <div class="user-actions" id="userActions">
+        <button id="loginToggle">Login</button>
+        <button id="registerToggle">Register</button>
+      </div>
+      <div class="user-info hidden" id="userInfo">
+        <span id="userName"></span>
+        <button id="logout">Logout</button>
+      </div>
+    </header>
+
+    <section class="auth-section hidden" id="authSection">
+      <h2 id="authTitle">Login</h2>
+      <form id="authForm">
+        <label>
+          Username
+          <input type="text" id="authUsername" required />
+        </label>
+        <label>
+          Password
+          <input type="password" id="authPassword" required />
+        </label>
+        <button type="submit" id="authSubmit">Login</button>
+        <p class="auth-toggle">Don't have an account? <span id="switchAuth">Register</span></p>
+      </form>
+    </section>
+
+    <main class="hidden" id="mainContent">
+      <section class="alerts-section">
+        <div class="section-header">
+          <h2>Alert Definitions</h2>
+          <div class="stats" id="stats"></div>
+        </div>
+
+        <form id="alertForm" class="alert-form">
+          <input type="hidden" id="alertId" />
+
+          <div class="form-row">
+            <label>
+              Name
+              <input type="text" id="alertName" placeholder="My alert" required maxlength="100" />
+            </label>
+            <label>
+              Asset
+              <input type="text" id="alertAsset" placeholder="BTC" required maxlength="20" />
+            </label>
+            <label>
+              Type
+              <select id="alertType" required>
+                <option value="price">Price</option>
+                <option value="volatility">Volatility</option>
+                <option value="roi">ROI</option>
+              </select>
+            </label>
+            <label>
+              Condition
+              <select id="alertCondition" required>
+                <option value="above">Above</option>
+                <option value="below">Below</option>
+                <option value="change">Change</option>
+              </select>
+            </label>
+            <label>
+              Threshold
+              <input type="number" id="alertThreshold" placeholder="100" required min="0" step="0.01" />
+            </label>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" id="alertSubmit">Create Alert</button>
+            <button type="button" id="alertCancel" class="secondary hidden">Cancel</button>
+          </div>
+        </form>
+
+        <div id="alertsList" class="alerts-list"></div>
+      </section>
+
+      <section class="evaluation-section">
+        <h2>Simulate Market Ingestion</h2>
+        <form id="ingestionForm" class="ingestion-form">
+          <div class="form-row">
+            <label>
+              Asset
+              <input type="text" id="ingestAsset" placeholder="BTC" required />
+            </label>
+            <label>
+              Price
+              <input type="number" id="ingestPrice" placeholder="50000" step="0.01" />
+            </label>
+            <label>
+              Volatility
+              <input type="number" id="ingestVolatility" placeholder="0.05" step="0.0001" />
+            </label>
+            <label>
+              ROI
+              <input type="number" id="ingestROI" placeholder="0.12" step="0.0001" />
+            </label>
+          </div>
+          <button type="submit">Process Ingestion</button>
+        </form>
+        <div id="ingestionResult" class="ingestion-result"></div>
+      </section>
+
+      <section class="notifications-section">
+        <h2>Real-time Notifications</h2>
+        <div id="notifications">
+          <p class="empty-state">No notifications yet</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <template id="alertTemplate">
+    <div class="alert-item">
+      <div class="alert-metadata">
+        <h3 class="alert-name"></h3>
+        <p class="alert-details"></p>
+        <span class="alert-status"></span>
+      </div>
+      <div class="alert-actions">
+        <button class="view-history">History</button>
+        <button class="toggle">Disable</button>
+        <button class="edit">Edit</button>
+        <button class="delete">Delete</button>
+      </div>
+      <div class="alert-history hidden"></div>
+    </div>
+  </template>
+
+  <script src="/app.js" defer></script>
+</body>
+</html>

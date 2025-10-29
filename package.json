@@ -1,0 +1,15 @@
+{
+  "name": "alerts-workflows",
+  "version": "1.0.0",
+  "description": "Alerts workflow system with UI, backend, evaluation, and SSE notifications.",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^9.0.0",
+    "cors": "^2.8.5",
+    "express": "^4.18.2"
+  }
+}
