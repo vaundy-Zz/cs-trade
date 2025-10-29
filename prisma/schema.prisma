@@ -1,0 +1,77 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  posts     Post[]
+  
+  @@index([email])
+  @@index([createdAt])
+}
+
+model Post {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  content     String
+  excerpt     String?
+  published   Boolean  @default(false)
+  featured    Boolean  @default(false)
+  views       Int      @default(0)
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  tags        Tag[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  publishedAt DateTime?
+  
+  @@index([slug])
+  @@index([authorId])
+  @@index([categoryId])
+  @@index([published, publishedAt(sort: Desc)])
+  @@index([published, featured])
+  @@index([views(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
+}
+
+model Category {
+  id    String @id @default(cuid())
+  name  String @unique
+  slug  String @unique
+  posts Post[]
+  
+  @@index([slug])
+}
+
+model Tag {
+  id    String @id @default(cuid())
+  name  String @unique
+  slug  String @unique
+  posts Post[]
+  
+  @@index([slug])
+}
+
+model Analytics {
+  id        String   @id @default(cuid())
+  path      String
+  views     Int      @default(0)
+  date      DateTime @default(now())
+  
+  @@unique([path, date])
+  @@index([path])
+  @@index([date(sort: Desc)])
+}
