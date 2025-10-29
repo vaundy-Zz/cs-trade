@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  alerts    AlertDefinition[]
+  triggers  AlertTrigger[]
+
+  @@index([email])
+}
+
+enum AlertType {
+  PRICE
+  VOLATILITY
+  ROI
+}
+
+enum ConditionOperator {
+  ABOVE
+  BELOW
+  EQUALS
+  PERCENTAGE_CHANGE_UP
+  PERCENTAGE_CHANGE_DOWN
+}
+
+model AlertDefinition {
+  id          String            @id @default(uuid())
+  userId      String
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  name        String
+  description String?
+  type        AlertType
+  
+  symbol      String
+  operator    ConditionOperator
+  threshold   Float
+  
+  isActive    Boolean           @default(true)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  
+  triggers    AlertTrigger[]
+
+  @@index([userId])
+  @@index([symbol])
+  @@index([isActive])
+}
+
+model AlertTrigger {
+  id              String          @id @default(uuid())
+  alertId         String
+  alert           AlertDefinition @relation(fields: [alertId], references: [id], onDelete: Cascade)
+  
+  userId          String
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  triggeredValue  Float
+  triggeredAt     DateTime        @default(now())
+  
+  notified        Boolean         @default(false)
+  notifiedAt      DateTime?
+  
+  @@index([alertId])
+  @@index([userId])
+  @@index([triggeredAt])
+}
+
+model NotificationLog {
+  id          String   @id @default(uuid())
+  userId      String
+  alertId     String
+  channel     String
+  message     String
+  sentAt      DateTime @default(now())
+  success     Boolean  @default(true)
+  error       String?
+
+  @@index([userId])
+  @@index([alertId])
+  @@index([sentAt])
+}
+
+model RateLimitTracker {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  count       Int      @default(0)
+  windowStart DateTime @default(now())
+  
+  @@index([userId])
+}
