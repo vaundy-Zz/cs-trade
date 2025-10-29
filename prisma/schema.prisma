@@ -1,0 +1,118 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AggregateGranularity {
+  HOURLY
+  DAILY
+  WEEKLY
+}
+
+enum RoiWindow {
+  ONE_HOUR
+  TWENTY_FOUR_HOUR
+  SEVEN_DAY
+  THIRTY_DAY
+}
+
+model Market {
+  id         Int                @id @default(autoincrement())
+  symbol     String             @unique
+  name       String
+  baseAsset  String
+  quoteAsset String
+  assetType  String?
+  dataSource String
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+
+  snapshots  MarketSnapshot[]
+  aggregates MarketAggregate[]
+  roiStats   MarketROIStatistic[]
+  comparisonsBase  MarketComparison[] @relation("ComparisonBase")
+  comparisonsQuote MarketComparison[] @relation("ComparisonQuote")
+}
+
+model MarketSnapshot {
+  id            Int       @id @default(autoincrement())
+  market        Market    @relation(fields: [marketId], references: [id])
+  marketId      Int
+  capturedAt    DateTime
+  price         Decimal   @db.Numeric(30, 10)
+  volume        Decimal   @db.Numeric(30, 10)
+  volatility    Decimal   @db.Numeric(18, 10)
+  dataSource    String
+  roi1hPercent  Decimal   @db.Numeric(10, 6)
+  roi24hPercent Decimal   @db.Numeric(10, 6)
+  roi7dPercent  Decimal   @db.Numeric(10, 6)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([marketId, capturedAt])
+  @@index([capturedAt])
+}
+
+model MarketAggregate {
+  id             Int            @id @default(autoincrement())
+  market         Market         @relation(fields: [marketId], references: [id])
+  marketId       Int
+  granularity    AggregateGranularity
+  windowStart    DateTime
+  windowEnd      DateTime
+  openPrice      Decimal        @db.Numeric(30, 10)
+  closePrice     Decimal        @db.Numeric(30, 10)
+  highPrice      Decimal        @db.Numeric(30, 10)
+  lowPrice       Decimal        @db.Numeric(30, 10)
+  averagePrice   Decimal        @db.Numeric(30, 10)
+  volume         Decimal        @db.Numeric(30, 10)
+  volatility     Decimal        @db.Numeric(18, 10)
+  priceChangePct Decimal        @db.Numeric(10, 6)
+  dataSource     String
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@unique([marketId, granularity, windowStart, windowEnd])
+  @@index([granularity, windowStart, windowEnd])
+}
+
+model MarketComparison {
+  id             Int      @id @default(autoincrement())
+  baseMarket     Market   @relation("ComparisonBase", fields: [baseMarketId], references: [id])
+  baseMarketId   Int
+  quoteMarket    Market   @relation("ComparisonQuote", fields: [quoteMarketId], references: [id])
+  quoteMarketId  Int
+  capturedAt     DateTime
+  priceRatio     Decimal  @db.Numeric(30, 10)
+  volumeRatio    Decimal  @db.Numeric(30, 10)
+  roiSpreadPct   Decimal  @db.Numeric(10, 6)
+  dataSource     String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([baseMarketId, quoteMarketId, capturedAt])
+  @@index([capturedAt])
+}
+
+model MarketROIStatistic {
+  id             Int       @id @default(autoincrement())
+  market         Market    @relation(fields: [marketId], references: [id])
+  marketId       Int
+  window         RoiWindow
+  capturedAt     DateTime
+  roiPercent     Decimal   @db.Numeric(10, 6)
+  sharpeRatio    Decimal   @db.Numeric(10, 6)
+  sortinoRatio   Decimal   @db.Numeric(10, 6)
+  maxDrawdownPct Decimal   @db.Numeric(10, 6)
+  dataSource     String
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@unique([marketId, window, capturedAt])
+  @@index([capturedAt])
+}
