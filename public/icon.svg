@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">Product Intelligence Icon</title>
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1d4ed8" />
+      <stop offset="100%" stop-color="#6366f1" />
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="12" fill="url(#gradient)" />
+  <path
+    d="M20 40h4v-8h-4v8zm10 0h4V24h-4v16zm10 0h4V16h-4v24z"
+    fill="#fff"
+    opacity="0.9"
+  />
+  <path
+    d="M18 44h28a2 2 0 0 1 0 4H18a2 2 0 0 1 0-4z"
+    fill="#bfdbfe"
+    opacity="0.85"
+  />
+</svg>
