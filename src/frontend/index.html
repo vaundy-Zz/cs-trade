@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trends Analytics Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/date-fns@2.30.0/index.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: #f5f7fa;
+      color: #333;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #2c3e50;
+    }
+
+    .controls {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    .control-group {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+
+    .control-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .control-group select,
+    .control-group input {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 10px 20px;
+      background: #3498db;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background: #2980b9;
+    }
+
+    button.secondary {
+      background: #95a5a6;
+    }
+
+    button.secondary:hover {
+      background: #7f8c8d;
+    }
+
+    .chart-container {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    .chart-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 15px;
+      color: #2c3e50;
+    }
+
+    .canvas-wrapper {
+      position: relative;
+      height: 400px;
+    }
+
+    .heatmap-container {
+      overflow-x: auto;
+    }
+
+    .heatmap {
+      display: grid;
+      gap: 2px;
+      min-width: 800px;
+    }
+
+    .heatmap-row {
+      display: grid;
+      gap: 2px;
+    }
+
+    .heatmap-cell {
+      padding: 10px;
+      text-align: center;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    .heatmap-header {
+      font-weight: 600;
+      background: #ecf0f1;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #7f8c8d;
+    }
+
+    .error {
+      background: #e74c3c;
+      color: white;
+      padding: 15px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: #7f8c8d;
+      margin-bottom: 5px;
+    }
+
+    .stat-value {
+      font-size: 24px;
+      font-weight: 600;
+      color: #2c3e50;
+    }
+
+    @media (max-width: 768px) {
+      .control-group {
+        grid-template-columns: 1fr;
+      }
+
+      .canvas-wrapper {
+        height: 300px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📊 Trends Analytics Dashboard</h1>
+
+    <div id="error-container"></div>
+
+    <div class="controls">
+      <div class="control-group">
+        <div>
+          <label for="skins">Skins (comma-separated):</label>
+          <input type="text" id="skins" placeholder="skin-001,skin-002">
+        </div>
+        <div>
+          <label for="markets">Markets (comma-separated):</label>
+          <input type="text" id="markets" placeholder="Steam Market,CS.Money">
+        </div>
+        <div>
+          <label for="range">Date Range:</label>
+          <select id="range">
+            <option value="7d">Last 7 Days</option>
+            <option value="30d" selected>Last 30 Days</option>
+            <option value="90d">Last 90 Days</option>
+            <option value="180d">Last 180 Days</option>
+            <option value="1y">Last Year</option>
+          </select>
+        </div>
+        <div>
+          <label for="granularity">Granularity:</label>
+          <select id="granularity">
+            <option value="daily" selected>Daily</option>
+            <option value="hourly">Hourly</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <div>
+          <label for="chart-type">Chart Type:</label>
+          <select id="chart-type">
+            <option value="line" selected>Line Chart</option>
+            <option value="bar">Bar Chart</option>
+          </select>
+        </div>
+        <div>
+          <label for="ma-periods">MA Periods (comma-separated):</label>
+          <input type="text" id="ma-periods" placeholder="7,30" value="7,30">
+        </div>
+      </div>
+
+      <div class="button-group">
+        <button onclick="loadData()">Load Analytics</button>
+        <button class="secondary" onclick="exportCSV()">Export CSV</button>
+        <button class="secondary" onclick="exportPNG()">Export PNG</button>
+      </div>
+    </div>
+
+    <div class="stats" id="stats-container"></div>
+
+    <div class="chart-container">
+      <div class="chart-title">Price Trends</div>
+      <div class="canvas-wrapper">
+        <canvas id="price-chart"></canvas>
+      </div>
+    </div>
+
+    <div class="chart-container">
+      <div class="chart-title">Volume Analysis</div>
+      <div class="canvas-wrapper">
+        <canvas id="volume-chart"></canvas>
+      </div>
+    </div>
+
+    <div class="chart-container">
+      <div class="chart-title">Volatility Heatmap</div>
+      <div class="heatmap-container" id="heatmap-container">
+        <div class="loading">Load data to display heatmap</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
